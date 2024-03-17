@@ -36,5 +36,5 @@ class SingleUserResponse {
   factory SingleUserResponse.fromJson(Map<String, dynamic> json) =>
       _$SingleUserResponseFromJson(json);
 
-  Map<String, dynamic> toJson() => _$SingleUserResponseToJson(this);
+  Map<String, dynamic> toJson(data) => _$SingleUserResponseToJson(this);
 }

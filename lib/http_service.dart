@@ -9,30 +9,41 @@ class HttpService {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
     ));
+
     initializeInterceptors();
   }
 
-  Future<Response> getRequest(String endpoint) async {
-    Response response;
+  Future<Response> getRequest(String endPoint) async {
     try {
-      response = await _dio.get(endpoint);
+      final response = await _dio.get(endPoint);
+      if (response.statusCode == 200) {
+        return response;
+      } else {
+        throw DioError(
+          requestOptions: RequestOptions(path: endPoint),
+          response: response,
+          error: "Failed to load data, status code: ${response.statusCode}",
+        );
+      }
     } on DioError catch (e) {
-      print(e.error);
+      print(e.message);
       throw Exception(e.message);
     }
-    return response;
   }
 
-  initializeInterceptors() {
+  void initializeInterceptors() {
     _dio.interceptors.add(InterceptorsWrapper(
-      onError: (error, handler) {
+      onError: (DioError error, handler) {
         print(error.message);
+        handler.next(error);
       },
-      onRequest: (request, handler) {
-        print("${request.method} ${request.path}");
+      onRequest: (RequestOptions options, handler) {
+        print("${options.method} ${options.path}");
+        handler.next(options);
       },
-      onResponse: (response, handler) {
+      onResponse: (Response response, handler) {
         print(response.data);
+        handler.next(response);
       },
     ));
   }
