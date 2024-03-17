@@ -1,52 +1,82 @@
 import 'package:dio/dio.dart';
 import 'package:dio_jsonserializable/http_service.dart';
+import 'package:dio_jsonserializable/model/list_user_response.dart';
+import 'package:dio_jsonserializable/model/list_user_response.dart';
 import 'package:flutter/material.dart';
 
+import '../model/list_user_response.dart';
+import '../model/list_user_response.dart';
 import '../model/user.dart';
 
-class ListUsersScreen extends StatefulWidget {
-  const ListUsersScreen({super.key});
-
+class ListUserScreen extends StatefulWidget {
   @override
-  State<ListUsersScreen> createState() => _ListUsersScreenState();
+  _ListUserScreenState createState() => _ListUserScreenState();
 }
 
-class _ListUsersScreenState extends State<ListUsersScreen> {
-  bool isLoading=false;
+class _ListUserScreenState extends State<ListUserScreen> {
+  bool isLoading = false;
+
   late HttpService http;
-  late List<SingleUserResponse> UserResponse;
-  late User user;
+
+  late ListUserResponse listUserResponse;
+
+  late List<User> users;
+
   Future getListUser() async {
     Response response;
     try {
-      isLoading=true;
-      response =await http.getRequest("/api/users?page=2");
-      isLoading=false;
+      isLoading = true;
 
-      if (response.statusCode==200){
+      response = await http.getRequest("/api/users?page=2");
 
-      }else{
+      isLoading = false;
 
+      if (response.statusCode == 200) {
+        setState(() {
+          listUserResponse = ListUserResponse.fromJson(response.data);
+          users = listUserResponse.users;
+        });
+      } else {
+        print("There is some problem status code not 200");
       }
-
     } on Exception catch (e) {
-      // TODO
+      isLoading = false;
+      print(e);
     }
   }
 
-
-
-
   @override
   void initState() {
-    HttpService();
+    http = HttpService();
+
+    getListUser();
+
     super.initState();
   }
+
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       appBar: AppBar(
-        title: Text("Get list  user"),
+        title: Text("Get Single user"),
+      ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator())
+          : users != null
+          ? ListView.builder(
+        itemBuilder: (context, index) {
+          final user = users[index];
+
+          return ListTile(
+            title: Text(user.firstName),
+            leading: Image.network(user.avatar),
+            subtitle: Text(user.lastName),
+          );
+        },
+        itemCount: users.length,
+      )
+          : Center(
+        child: Text("No User Object"),
       ),
     );
   }
